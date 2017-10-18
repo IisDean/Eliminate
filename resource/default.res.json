@@ -1,0 +1,64 @@
+{
+	"groups": [
+		{
+			"keys": "bg_jpg,egret_icon_png,description_json,game_bg",
+			"name": "preload"
+		},
+		{
+			"keys": "list_1_png,list_2_png,list_3_png,list_4_png,list_5_png,list_6_png",
+			"name": " creature"
+		}
+	],
+	"resources": [
+		{
+			"url": "assets/bg.jpg",
+			"type": "image",
+			"name": "bg_jpg"
+		},
+		{
+			"url": "assets/egret_icon.png",
+			"type": "image",
+			"name": "egret_icon_png"
+		},
+		{
+			"url": "config/description.json",
+			"type": "json",
+			"name": "description_json"
+		},
+		{
+			"url": "assets/game_bg.png",
+			"type": "image",
+			"name": "game_bg"
+		},
+		{
+			"url": "assets/list_1.png",
+			"type": "image",
+			"name": "list_1_png"
+		},
+		{
+			"url": "assets/list_2.png",
+			"type": "image",
+			"name": "list_2_png"
+		},
+		{
+			"url": "assets/list_3.png",
+			"type": "image",
+			"name": "list_3_png"
+		},
+		{
+			"url": "assets/list_4.png",
+			"type": "image",
+			"name": "list_4_png"
+		},
+		{
+			"url": "assets/list_5.png",
+			"type": "image",
+			"name": "list_5_png"
+		},
+		{
+			"url": "assets/list_6.png",
+			"type": "image",
+			"name": "list_6_png"
+		}
+	]
+}
