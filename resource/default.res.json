@@ -1,12 +1,12 @@
 {
 	"groups": [
 		{
-			"keys": "bg_jpg,egret_icon_png,description_json,game_bg",
-			"name": "preload"
+			"keys": "list_1_png,list_2_png,list_3_png,list_4_png,list_5_png,list_6_png",
+			"name": "creature"
 		},
 		{
-			"keys": "list_1_png,list_2_png,list_3_png,list_4_png,list_5_png,list_6_png",
-			"name": " creature"
+			"keys": "bg_jpg,egret_icon_png,description_json,game_bg",
+			"name": "preload"
 		}
 	],
 	"resources": [
