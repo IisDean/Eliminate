@@ -26,6 +26,8 @@ var Main = (function (_super) {
         RES.loadGroup("creature");
     };
     Main.prototype.onGroupComplete = function (event) {
+        var Pagemanager = new CapabilitiesTest();
+        this.addChild(Pagemanager);
         this.option = {
             gameWidth: egret.MainContext.instance.stage.stageWidth,
             gameHeight: egret.MainContext.instance.stage.stageHeight,
@@ -39,7 +41,8 @@ var Main = (function (_super) {
         };
         switch (event.groupName) {
             case 'preload':
-                this.createBitmapByName('game_bg', 0, 0, this.option['gameWidth'], this.option['gameHeight']);
+                var gameBg = this.createBitmapByName('game_bg', 0, 0, this.option['gameWidth'], this.option['gameHeight']);
+                gameBg.addEventListener(egret.TouchEvent.TOUCH_TAP, this.onTouch, this);
                 break;
             case 'creature':
                 this.initGame();
@@ -81,9 +84,18 @@ var Main = (function (_super) {
                 $this.option['gameArr'][index][index2]['obj'] = $this.createBitmapByName(src, x, y, w, h);
             });
         });
-        var p = this.option['gameArr'][0][0]['obj'];
-        p.x = 0;
-        p.y = 0;
+        var boy = new Boy();
+        boy.name = "二货";
+        //创建一个女朋友
+        var girl = new Girl();
+        girl.name = "女朋友";
+        //注册侦听器
+        boy.addEventListener(Eventmanager.GOTO_GIRL, girl.getDate, girl);
+        //男朋友发送要求
+        boy.order();
+        //约会邀请完成后，移除侦听器
+        boy.removeEventListener(Eventmanager.GOTO_GIRL, girl.getDate, girl);
+        this.drawText();
     };
     //图形绘制
     Main.prototype.createBitmapByName = function (name, x, y, w, h) {
@@ -96,6 +108,20 @@ var Main = (function (_super) {
         result.height = h;
         this.addChild(result);
         return result;
+    };
+    //
+    Main.prototype.onTouch = function (evt) {
+        console.log('点击了');
+    };
+    Main.prototype.drawText = function () {
+        this.txt = new egret.TextField();
+        this.txt.size = 12;
+        this.txt.x = 152;
+        this.txt.y = 100;
+        this.txt.width = 200;
+        this.txt.height = 100;
+        this.txt.text = '事件文字';
+        this.addChild(this.txt);
     };
     return Main;
 }(egret.DisplayObjectContainer));

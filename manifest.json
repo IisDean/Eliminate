@@ -8,7 +8,11 @@
 		"promise/bin/promise.js"
 	],
 	"game": [
+		"bin-debug/Boy.js",
+		"bin-debug/Eventmanager.js",
+		"bin-debug/Gril.js",
 		"bin-debug/LoadingUI.js",
-		"bin-debug/Main.js"
+		"bin-debug/Main.js",
+		"bin-debug/Pagemanager.js"
 	]
 }

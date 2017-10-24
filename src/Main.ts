@@ -1,8 +1,10 @@
 class Main extends egret.DisplayObjectContainer{
+    private label: egret.TextField;
     public constructor(){
         super();
         
         this.addEventListener(egret.Event.ADDED_TO_STAGE,this.onAddToStage,this);
+        
     }
     private onAddToStage(event:egret.Event) {
         RES.addEventListener(RES.ResourceEvent.GROUP_COMPLETE, this.onGroupComplete, this);
@@ -13,8 +15,13 @@ class Main extends egret.DisplayObjectContainer{
     }
 
     private option:Object;//游戏参数
+    private _textinfo:egret.TextField;
 
     private onGroupComplete(event:RES.ResourceEvent):void{
+
+        var Pagemanager:CapabilitiesTest = new CapabilitiesTest();
+        this.addChild(Pagemanager);
+
         this.option = {
             gameWidth : egret.MainContext.instance.stage.stageWidth,//舞台宽度
             gameHeight : egret.MainContext.instance.stage.stageHeight,//舞台高度
@@ -28,7 +35,8 @@ class Main extends egret.DisplayObjectContainer{
         };
         switch( event.groupName ){
             case 'preload':
-                this.createBitmapByName('game_bg',0,0,this.option['gameWidth'],this.option['gameHeight']);
+                var gameBg = this.createBitmapByName('game_bg',0,0,this.option['gameWidth'],this.option['gameHeight']);
+                gameBg.addEventListener(egret.TouchEvent.TOUCH_TAP,this.onTouch,this);
             break;
             case 'creature':
                 this.initGame();
@@ -73,9 +81,19 @@ class Main extends egret.DisplayObjectContainer{
                 $this.option['gameArr'][index][index2]['obj'] = $this.createBitmapByName(src,x,y,w,h);
             });
         });
-        var p = this.option['gameArr'][0][0]['obj'];
-        p.x = 0;
-        p.y = 0;
+
+        var boy:Boy = new Boy();
+        boy.name = "二货";
+        //创建一个女朋友
+        var girl:Girl = new Girl();
+        girl.name = "女朋友";
+        //注册侦听器
+        boy.addEventListener(Eventmanager.GOTO_GIRL,girl.getDate,girl);
+        //男朋友发送要求
+        boy.order();
+        //约会邀请完成后，移除侦听器
+        boy.removeEventListener(Eventmanager.GOTO_GIRL,girl.getDate,girl);
+        this.drawText();
     }
 
     //图形绘制
@@ -90,5 +108,23 @@ class Main extends egret.DisplayObjectContainer{
         this.addChild(result);
         return result;
     }
-    
+
+    //
+    private onTouch(evt:egret.TouchEvent){
+        console.log('点击了');
+    }
+
+    //绘制文本
+    private txt:egret.TextField;
+    private drawText():void{
+        this.txt = new egret.TextField();
+        this.txt.size = 12; 
+        this.txt.x = 152;
+        this.txt.y = 100;
+        this.txt.width = 200;
+        this.txt.height = 100;
+        this.txt.text = '事件文字';
+        this.addChild(this.txt);
+    }
+
 }
