@@ -18,10 +18,6 @@ class Main extends egret.DisplayObjectContainer{
     private _textinfo:egret.TextField;
 
     private onGroupComplete(event:RES.ResourceEvent):void{
-
-        var Pagemanager:CapabilitiesTest = new CapabilitiesTest();
-        this.addChild(Pagemanager);
-
         this.option = {
             gameWidth : egret.MainContext.instance.stage.stageWidth,//舞台宽度
             gameHeight : egret.MainContext.instance.stage.stageHeight,//舞台高度
@@ -35,20 +31,21 @@ class Main extends egret.DisplayObjectContainer{
         };
         switch( event.groupName ){
             case 'preload':
-                var gameBg = this.createBitmapByName('game_bg',0,0,this.option['gameWidth'],this.option['gameHeight']);
-                gameBg.addEventListener(egret.TouchEvent.TOUCH_TAP,this.onTouch,this);
+                this.createBitmapByName('game_bg',0,0,this.option['gameWidth'],this.option['gameHeight']);
             break;
             case 'creature':
                 this.initGame();
             break;
         }
     }
+
     private onResourceProgress(event:RES.ResourceEvent):void{
         if( event.groupName == 'creature' ){
              console.log("creature资源加载进度："+event.itemsLoaded+'/'+event.itemsTotal);
              RES.removeEventListener(RES.ResourceEvent.GROUP_COMPLETE,this.onResourceProgress,this);
         }
     }
+
     //初始游戏
     private initGame(){
         var $this = this;
@@ -59,6 +56,12 @@ class Main extends egret.DisplayObjectContainer{
             d = this.option['gameHeight']*.8 - b,//高度
             e = c / this.option['row'][0],//行间距
             f = d / this.option['row'][1];//列间距
+        this.option['gameCoords'] = {
+            minX : a,
+            maxX : c+a,
+            minH : b,
+            maxH : d+b
+        };
         this.option['kid']['width'] = e*.9;
         this.option['kid']['height'] = e*.9;
         for(var i=0;i<this.option['row'][0];i++){
@@ -81,24 +84,62 @@ class Main extends egret.DisplayObjectContainer{
                 $this.option['gameArr'][index][index2]['obj'] = $this.createBitmapByName(src,x,y,w,h);
             });
         });
+        this.touchEnabled = true;
+        this.addEventListener(egret.TouchEvent.TOUCH_BEGIN,this.onTouch,this);
+        this.addEventListener(egret.TouchEvent.TOUCH_MOVE,this.isTouch,this);
+    }
 
-        var boy:Boy = new Boy();
-        boy.name = "二货";
-        //创建一个女朋友
-        var girl:Girl = new Girl();
-        girl.name = "女朋友";
-        //注册侦听器
-        boy.addEventListener(Eventmanager.GOTO_GIRL,girl.getDate,girl);
-        //男朋友发送要求
-        boy.order();
-        //约会邀请完成后，移除侦听器
-        boy.removeEventListener(Eventmanager.GOTO_GIRL,girl.getDate,girl);
-        this.drawText();
+    //游戏过程数据
+    private gameObj:Object = {
+        coords : {
+            start : [],
+            move : []
+        }
+    };
+
+    private touch:boolean;//滑动准许
+    //开始触摸
+    private onTouch(evt:egret.TouchEvent){
+        this.gameObj['coords']['start'][0] = evt.localX;
+        this.gameObj['coords']['start'][1] = evt.localY;
+        this.touch = true;
+    }
+
+    //滑动
+    private isTouch(evt:egret.TouchEvent){
+        if(!this.touch)return false;//滑动阻止
+        this.touch = false;//滑动状态变更
+        var touchStart = this.gameObj['coords']['start'];
+        var touchOption = this.option['gameCoords'];
+        if( touchStart[0] < touchOption['minX'] || touchStart[0] > touchOption['maxX'] || touchStart[1] < touchOption['minH'] || touchStart[1] > touchOption['maxH'] )return false;//不在游戏区域
+        this.gameObj['coords']['move'][0] = evt.localX;
+        this.gameObj['coords']['move'][1] = evt.localY;
+        var x = this.gameObj['coords']['move'][0] - touchStart[0],
+            y = this.gameObj['coords']['move'][1] - touchStart[1];
+       this.gameObj['direction'] = this.isDirection(x,y);//滑动方向
+        console.log(this.gameObj['direction']);
+    }
+
+    //滑动方向判断
+    private isDirection(X,Y){
+        var result = 0;
+        if( Math.abs(X) > Math.abs(Y) && X > 0 ) {
+            result = 2;//右滑
+        }else if ( Math.abs(X) > Math.abs(Y) && X < 0 ) {
+            result = 4;//左滑
+        }else if ( Math.abs(Y) > Math.abs(X) && Y > 0) {
+            result = 3;//下滑
+        }else if  ( Math.abs(Y) > Math.abs(X) && Y < 0 ) {
+            result = 1;//上滑
+        }else{
+            console.log('错误');//点击
+        }
+        return result;
     }
 
     //图形绘制
     private createBitmapByName(name:string, x:number, y:number, w:number, h:number){
-        let result:egret.Bitmap = new egret.Bitmap();
+        var result:egret.Bitmap = new egret.Bitmap();
         var texture:egret.Texture = RES.getRes(name);
         result.texture = texture;
         result.x = x;
@@ -107,24 +148,6 @@ class Main extends egret.DisplayObjectContainer{
         result.height = h;
         this.addChild(result);
         return result;
-    }
-
-    //
-    private onTouch(evt:egret.TouchEvent){
-        console.log('点击了');
-    }
-
-    //绘制文本
-    private txt:egret.TextField;
-    private drawText():void{
-        this.txt = new egret.TextField();
-        this.txt.size = 12; 
-        this.txt.x = 152;
-        this.txt.y = 100;
-        this.txt.width = 200;
-        this.txt.height = 100;
-        this.txt.text = '事件文字';
-        this.addChild(this.txt);
     }
 
 }

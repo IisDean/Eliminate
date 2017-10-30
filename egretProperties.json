@@ -23,6 +23,9 @@
       "name": "tween"
     },
     {
+      "name": "eui"
+    },
+    {
       "name": "promise",
       "path": "./promise"
     }

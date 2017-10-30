@@ -5,14 +5,11 @@
 		"libs/modules/game/game.js",
 		"libs/modules/res/res.js",
 		"libs/modules/tween/tween.js",
+		"libs/modules/eui/eui.js",
 		"promise/bin/promise.js"
 	],
 	"game": [
-		"bin-debug/Boy.js",
-		"bin-debug/Eventmanager.js",
-		"bin-debug/Gril.js",
 		"bin-debug/LoadingUI.js",
-		"bin-debug/Main.js",
-		"bin-debug/Pagemanager.js"
+		"bin-debug/Main.js"
 	]
 }
