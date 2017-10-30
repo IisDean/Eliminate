@@ -91,6 +91,7 @@ class Main extends egret.DisplayObjectContainer{
 
     //游戏过程数据
     private gameObj:Object = {
+        iconObj : null,
         coords : {
             start : [],
             move : []
@@ -105,19 +106,56 @@ class Main extends egret.DisplayObjectContainer{
         this.touch = true;
     }
 
+    //寻找滑动的图标对象
+    private seachIconObj(x,y){
+        var $this = this;
+        var activeIcon = [];
+        $this.option['gameArr'].forEach(function(ev,index){
+            ev.forEach(function(ev2,index2){
+                for(var i=0;i<ev2.loca.length;i++){
+                    if( Math.abs(x-ev2.loca[0]) < $this.option['kid']['width'] && Math.abs(y-ev2.loca[1]) < $this.option['kid']['height'] ){
+                        activeIcon = [index,index2];
+                    }
+                }
+            });
+        });
+        return activeIcon;
+    }
+
     //滑动
     private isTouch(evt:egret.TouchEvent){
-        if(!this.touch)return false;//滑动阻止
-        this.touch = false;//滑动状态变更
-        var touchStart = this.gameObj['coords']['start'];
-        var touchOption = this.option['gameCoords'];
-        if( touchStart[0] < touchOption['minX'] || touchStart[0] > touchOption['maxX'] || touchStart[1] < touchOption['minH'] || touchStart[1] > touchOption['maxH'] )return false;//不在游戏区域
-        this.gameObj['coords']['move'][0] = evt.localX;
-        this.gameObj['coords']['move'][1] = evt.localY;
-        var x = this.gameObj['coords']['move'][0] - touchStart[0],
+         if(!this.touch)return false;//滑动阻止
+         this.touch = false;//滑动状态变更
+         var touchStart = this.gameObj['coords']['start'];
+         var touchOption = this.option['gameCoords'];
+         if( touchStart[0] < touchOption['minX'] || touchStart[0] > touchOption['maxX'] || touchStart[1] < touchOption['minH'] || touchStart[1] > touchOption['maxH'] )return false;//不在游戏区域
+         this.gameObj['iconObj'] = this.seachIconObj(this.gameObj['coords']['start'][0],this.gameObj['coords']['start'][1]);//寻找滑动的图标对象
+         this.gameObj['coords']['move'][0] = evt.localX;
+         this.gameObj['coords']['move'][1] = evt.localY;
+         var x = this.gameObj['coords']['move'][0] - touchStart[0],
             y = this.gameObj['coords']['move'][1] - touchStart[1];
-       this.gameObj['direction'] = this.isDirection(x,y);//滑动方向
-        console.log(this.gameObj['direction']);
+        this.gameObj['direction'] = this.isDirection(x,y);//滑动方向
+        var aX = this.gameObj['iconObj'][0],
+            aY = this.gameObj['iconObj'][1];
+        this.locaChange(this.gameObj['direction'],this.option['gameArr'][aX][aY]['obj'])
+    }
+
+    // 更换位置
+    private locaChange(direction,obj){
+        switch(direction){
+            case 1://上
+                obj.y = obj.y - this.option['kid']['height'];
+            break;
+            case 2://右
+                obj.x = obj.x + this.option['kid']['width'];
+            break;
+            case 3://下
+                obj.y = obj.y + this.option['kid']['height'];
+            break;
+            case 4://左
+                obj.x = obj.x - this.option['kid']['width'];
+            break;
+        }
     }
 
     //滑动方向判断
