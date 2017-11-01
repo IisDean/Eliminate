@@ -39,8 +39,8 @@ var Main = (function (_super) {
             gameHeight: egret.MainContext.instance.stage.stageHeight,
             row: [6, 8],
             kid: {
-                width: 40,
-                height: 40,
+                width: 60,
+                height: 60,
                 imgList: ['list_1_png', 'list_2_png', 'list_3_png', 'list_4_png', 'list_5_png', 'list_6_png'],
             },
             gameArr: [],
@@ -76,8 +76,8 @@ var Main = (function (_super) {
             minH: b,
             maxH: d + b
         };
-        this.option['kid']['width'] = e * .9;
-        this.option['kid']['height'] = e * .9;
+        this.option['kid']['width'] = e;
+        this.option['kid']['height'] = e;
         for (var i = 0; i < this.option['row'][0]; i++) {
             this.option['gameArr'][i] = [];
             for (var j = 0; j < this.option['row'][1]; j++) {
@@ -98,6 +98,7 @@ var Main = (function (_super) {
         this.touchEnabled = true;
         this.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.onTouch, this);
         this.addEventListener(egret.TouchEvent.TOUCH_MOVE, this.isTouch, this);
+        console.log(w, h);
     };
     //开始触摸
     Main.prototype.onTouch = function (evt) {
@@ -135,24 +136,33 @@ var Main = (function (_super) {
         var x = this.gameObj['coords']['move'][0] - touchStart[0], y = this.gameObj['coords']['move'][1] - touchStart[1];
         this.gameObj['direction'] = this.isDirection(x, y); //滑动方向
         var aX = this.gameObj['iconObj'][0], aY = this.gameObj['iconObj'][1];
-        this.locaChange(this.gameObj['direction'], this.option['gameArr'][aX][aY]['obj']);
+        this.locaChange(this.gameObj['direction'], aX, aY);
     };
     // 更换位置
-    Main.prototype.locaChange = function (direction, obj) {
+    Main.prototype.locaChange = function (direction, c, d) {
+        var a = 0, b = 0;
         switch (direction) {
             case 1://上
-                obj.y = obj.y - this.option['kid']['height'];
+                b -= 1;
                 break;
             case 2://右
-                obj.x = obj.x + this.option['kid']['width'];
+                a += 1;
                 break;
             case 3://下
-                obj.y = obj.y + this.option['kid']['height'];
+                b += 1;
                 break;
             case 4://左
-                obj.x = obj.x - this.option['kid']['width'];
+                a -= 1;
                 break;
         }
+        var e = this.option['gameArr'][c][d]['obj'];
+        this.option['gameArr'][c][d]['obj'] = this.option['gameArr'][c + a][d + b]['obj'];
+        this.option['gameArr'][c + a][d + b]['obj'] = e;
+        var w = this.option['kid']['width'], h = this.option['kid']['height'];
+        this.option['gameArr'][c][d]['obj'].x = this.option['gameArr'][c][d]['loca'][0] - w;
+        this.option['gameArr'][c][d]['obj'].y = this.option['gameArr'][c][d]['loca'][1] - h;
+        this.option['gameArr'][c + a][d + b]['obj'].x = this.option['gameArr'][c + a][d + b]['loca'][0] - w;
+        this.option['gameArr'][c + a][d + b]['obj'].y = this.option['gameArr'][c + a][d + b]['loca'][1] - h;
     };
     //滑动方向判断
     Main.prototype.isDirection = function (X, Y) {
