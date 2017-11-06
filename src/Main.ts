@@ -67,10 +67,13 @@ class Main extends egret.DisplayObjectContainer{
         for(var i=0;i<this.option['row'][0];i++){
             this.option['gameArr'][i] = [];
             for(var j=0;j<this.option['row'][1];j++){
-                var index = Math.ceil(Math.random()*5);
+                var index = Math.floor(Math.random()*6);
                 this.option['gameArr'][i].push({
                     imgSrc : this.option['kid']['imgList'][index],
-                    loca : [a+e*(i+1),b+f*(j+1)]
+                    loca : [a+e*(i+1),b+f*(j+1)],
+                    obj : {
+                        index : index    
+                    }
                 });
             }
         }
@@ -81,13 +84,12 @@ class Main extends egret.DisplayObjectContainer{
                 var src = ev2['imgSrc'],
                     x = ev2['loca'][0]-w,
                     y = ev2['loca'][1]-h;
-                $this.option['gameArr'][index][index2]['obj'] = $this.createBitmapByName(src,x,y,w,h);
+                $this.option['gameArr'][index][index2]['obj']['dom'] = $this.createBitmapByName(src,x,y,w,h);
             });
         });
         this.touchEnabled = true;
         this.addEventListener(egret.TouchEvent.TOUCH_BEGIN,this.onTouch,this);
         this.addEventListener(egret.TouchEvent.TOUCH_MOVE,this.isTouch,this);
-        console.log(w,h);
     }
 
     //游戏过程数据
@@ -144,7 +146,8 @@ class Main extends egret.DisplayObjectContainer{
     // 更换位置
     private locaChange(direction,c,d){
         var a = 0,
-            b = 0;
+            b = 0,
+            row = this.option['row'];
         switch(direction){
             case 1://上
                 b -= 1;
@@ -159,16 +162,20 @@ class Main extends egret.DisplayObjectContainer{
                 a -= 1;
             break;
         }
+        if( c + a >= row[0] || c + a < 0 || d + b >= row[1] || d + b < 0 ){
+            return false;
+        }
         var e = this.option['gameArr'][c][d]['obj'];
         this.option['gameArr'][c][d]['obj'] = this.option['gameArr'][c+a][d+b]['obj']
         this.option['gameArr'][c+a][d+b]['obj'] = e;
         
         var w = this.option['kid']['width'],
             h = this.option['kid']['height'];
-        this.option['gameArr'][c][d]['obj'].x = this.option['gameArr'][c][d]['loca'][0]-w;
-        this.option['gameArr'][c][d]['obj'].y = this.option['gameArr'][c][d]['loca'][1]-h;
-        this.option['gameArr'][c+a][d+b]['obj'].x = this.option['gameArr'][c+a][d+b]['loca'][0]-w;
-        this.option['gameArr'][c+a][d+b]['obj'].y = this.option['gameArr'][c+a][d+b]['loca'][1]-h;
+        this.option['gameArr'][c][d]['obj']['dom'].x = this.option['gameArr'][c][d]['loca'][0]-w;
+        this.option['gameArr'][c][d]['obj']['dom'].y = this.option['gameArr'][c][d]['loca'][1]-h;
+        this.option['gameArr'][c+a][d+b]['obj']['dom'].x = this.option['gameArr'][c+a][d+b]['loca'][0]-w;
+        this.option['gameArr'][c+a][d+b]['obj']['dom'].y = this.option['gameArr'][c+a][d+b]['loca'][1]-h;
+        this.detection(c,d);
     }
 
     //滑动方向判断
@@ -199,6 +206,25 @@ class Main extends egret.DisplayObjectContainer{
         result.height = h;
         this.addChild(result);
         return result;
+    }
+
+    //待消除的元素
+    private activeEli = {
+        activeArr : [],
+        index : null,
+    };
+
+    private detection(x,y){
+        this.activeEli['activeArr'].push({x:x,y:y,status:1});
+        var a = this.option['gameArr'];
+        if(this.activeEli['index'] == null )this.activeEli['index'] = a[x][y]['obj']['index'];
+            console.log(this.activeEli);
+        // 左-1
+        if( a[x-1][y]['obj']['index'] == this.activeEli['index'] && x > 0 ){
+            this.activeEli['activeArr'].push({x:x-1,y:y,status:1,});
+            this.detection(x-1,y);
+            console.log(this.activeEli);
+        }
     }
 
 }
