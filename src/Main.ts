@@ -175,6 +175,10 @@ class Main extends egret.DisplayObjectContainer{
         this.option['gameArr'][c][d]['obj']['dom'].y = this.option['gameArr'][c][d]['loca'][1]-h;
         this.option['gameArr'][c+a][d+b]['obj']['dom'].x = this.option['gameArr'][c+a][d+b]['loca'][0]-w;
         this.option['gameArr'][c+a][d+b]['obj']['dom'].y = this.option['gameArr'][c+a][d+b]['loca'][1]-h;
+        this.activeEli = {
+            activeArr : [],
+            index : null,
+        };
         this.detection(c,d);
     }
 
@@ -215,16 +219,19 @@ class Main extends egret.DisplayObjectContainer{
     };
 
     private detection(x,y){
-        this.activeEli['activeArr'].push({x:x,y:y,status:1});
         var a = this.option['gameArr'];
-        if(this.activeEli['index'] == null )this.activeEli['index'] = a[x][y]['obj']['index'];
-            console.log(this.activeEli);
+        if(this.activeEli['index'] == null ){
+            this.activeEli['activeArr'].push({x:x,y:y,status:1});
+            this.activeEli['index'] = a[x][y]['obj']['index'];
+        }
         // 左-1
-        if( a[x-1][y]['obj']['index'] == this.activeEli['index'] && x > 0 ){
+        if( x > 0 && a[x-1][y]['obj']['index'] == this.activeEli['index'] ){
             this.activeEli['activeArr'].push({x:x-1,y:y,status:1,});
             this.detection(x-1,y);
-            console.log(this.activeEli);
         }
+        console.log(x+'--'+y);
+        console.log(x-1+'--'+y);
+        console.log(this.activeEli);
     }
 
 }
