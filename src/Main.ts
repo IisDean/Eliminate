@@ -26,7 +26,7 @@ class Main extends egret.DisplayObjectContainer{
             kid : { //小动物
                 width : 60,//宽
                 height : 60,//高
-                imgList : ['list_1_png','list_2_png','list_3_png','list_4_png','list_5_png','list_6_png'],//图像地址
+                imgList : ['list_1_png','list_2_png','list_3_png','list_4_png','list_5_png','list_6_png'],//图片地址
             },
             gameArr : [],
         };
@@ -42,7 +42,7 @@ class Main extends egret.DisplayObjectContainer{
 
     private onResourceProgress(event:RES.ResourceEvent):void{
         if( event.groupName == 'creature' ){
-             console.log("creature资源加载进度："+event.itemsLoaded+'/'+event.itemsTotal);
+            //  console.log("creature资源加载进度："+event.itemsLoaded+'/'+event.itemsTotal);
              RES.removeEventListener(RES.ResourceEvent.GROUP_COMPLETE,this.onResourceProgress,this);
         }
     }
@@ -155,9 +155,10 @@ class Main extends egret.DisplayObjectContainer{
 
     // 滑动方向判断
     private locaChange(direction,c,d){
-        var a = 0,
+        var that = this,
+            a = 0,
             b = 0,
-            row = this.option['row'];
+            row = that.option['row'];
         switch(direction){
             case 1://上
                 b -= 1;
@@ -176,27 +177,28 @@ class Main extends egret.DisplayObjectContainer{
         if( c + a >= row[0] || c + a < 0 || d + b >= row[1] || d + b < 0 ){
             return false;
         }
-        //位置互换
-        this.exchangeLocation(a,b,c,d);
-        //位置移动
-        var w = this.option['kid']['width'],
-            h = this.option['kid']['height'];
-        var activeDom = this.option['gameArr'][c][d],
-            nextDom = this.option['gameArr'][c+a][d+b];
-        this.moveAnimation(activeDom['obj']['dom'],[activeDom['loca'][0]-w,activeDom['loca'][1]-h],150);
-        this.moveAnimation(nextDom['obj']['dom'],[nextDom['loca'][0]-w,nextDom['loca'][1]-h],150);
-        if( this.detection(c,d) == 0 ){
-            // this.exchangeLocation(c,d,a,b);
-            // this.moveAnimation(activeDom['obj']['dom'],[activeDom['loca'][0]-w,activeDom['loca'][1]-h],150);
-            // this.moveAnimation(nextDom['obj']['dom'],[nextDom['loca'][0]-w,nextDom['loca'][1]-h],150);
+        //位置互换，判断是否满足消除条件
+        that.exchangeLocation(a+c,b+d,c,d);
+        console.log(a+c,b+d,c,d);
+        if( that.detection(c,d) == 0 && that.detection(a+c,b+d) == 0 ){//不满足消除条件，两个小动物位置再次互换
+            setTimeout(function(){
+                that.exchangeLocation(a+c,b+d,c,d);
+            },200);
         };
     }
 
     // 位置互换
     private exchangeLocation(a,b,c,d){
+        console.log('位置互换');
         var e = this.option['gameArr'][c][d]['obj'];
-        this.option['gameArr'][c][d]['obj'] = this.option['gameArr'][c+a][d+b]['obj']
-        this.option['gameArr'][c+a][d+b]['obj'] = e;
+        this.option['gameArr'][c][d]['obj'] = this.option['gameArr'][a][b]['obj']
+        this.option['gameArr'][a][b]['obj'] = e;
+        var w = this.option['kid']['width'],
+            h = this.option['kid']['height'],
+            activeDom = this.option['gameArr'][c][d],
+            nextDom = this.option['gameArr'][a][b];
+        this.moveAnimation(activeDom['obj']['dom'],[activeDom['loca'][0]-w,activeDom['loca'][1]-h],150);
+        this.moveAnimation(nextDom['obj']['dom'],[nextDom['loca'][0]-w,nextDom['loca'][1]-h],150);
     }
 
     //缓动效果
@@ -216,7 +218,7 @@ class Main extends egret.DisplayObjectContainer{
         }else if  ( Math.abs(Y) > Math.abs(X) && Y < 0 ) {
             result = 1;//上滑
         }else{
-            console.log('错误');//点击
+            console.log('方向错误');//点击
         }
         return result;
     }
@@ -309,7 +311,7 @@ class Main extends egret.DisplayObjectContainer{
                 this.col_count = 0;
             }
         } 
-        console.log(this.gridArr);
+        // console.log(this.gridArr);
         //有一行或者有一列满足消除，即相同的动物大于等于3，返回1，表示可以交换
         if (this.row_count >= 3 || this.col_count >= 3) {  
             this.row_count = 0;

@@ -59,7 +59,7 @@ var Main = (function (_super) {
     };
     Main.prototype.onResourceProgress = function (event) {
         if (event.groupName == 'creature') {
-            console.log("creature资源加载进度：" + event.itemsLoaded + '/' + event.itemsTotal);
+            //  console.log("creature资源加载进度："+event.itemsLoaded+'/'+event.itemsTotal);
             RES.removeEventListener(RES.ResourceEvent.GROUP_COMPLETE, this.onResourceProgress, this);
         }
     };
@@ -154,7 +154,7 @@ var Main = (function (_super) {
     };
     // 滑动方向判断
     Main.prototype.locaChange = function (direction, c, d) {
-        var a = 0, b = 0, row = this.option['row'];
+        var that = this, a = 0, b = 0, row = that.option['row'];
         switch (direction) {
             case 1://上
                 b -= 1;
@@ -174,24 +174,24 @@ var Main = (function (_super) {
             return false;
         }
         //位置互换
-        this.exchangeLocation(a, b, c, d);
-        //位置移动
-        var w = this.option['kid']['width'], h = this.option['kid']['height'];
-        var activeDom = this.option['gameArr'][c][d], nextDom = this.option['gameArr'][c + a][d + b];
-        this.moveAnimation(activeDom['obj']['dom'], [activeDom['loca'][0] - w, activeDom['loca'][1] - h], 150);
-        this.moveAnimation(nextDom['obj']['dom'], [nextDom['loca'][0] - w, nextDom['loca'][1] - h], 150);
-        if (this.detection(c, d) == 0) {
-            // this.exchangeLocation(c,d,a,b);
-            // this.moveAnimation(activeDom['obj']['dom'],[activeDom['loca'][0]-w,activeDom['loca'][1]-h],150);
-            // this.moveAnimation(nextDom['obj']['dom'],[nextDom['loca'][0]-w,nextDom['loca'][1]-h],150);
+        that.exchangeLocation(a + c, b + d, c, d);
+        console.log(a + c, b + d, c, d);
+        if (that.detection(c, d) == 0 && that.detection(a + c, b + d) == 0) {
+            setTimeout(function () {
+                that.exchangeLocation(a + c, b + d, c, d);
+            }, 200);
         }
         ;
     };
     // 位置互换
     Main.prototype.exchangeLocation = function (a, b, c, d) {
+        console.log('位置互换');
         var e = this.option['gameArr'][c][d]['obj'];
-        this.option['gameArr'][c][d]['obj'] = this.option['gameArr'][c + a][d + b]['obj'];
-        this.option['gameArr'][c + a][d + b]['obj'] = e;
+        this.option['gameArr'][c][d]['obj'] = this.option['gameArr'][a][b]['obj'];
+        this.option['gameArr'][a][b]['obj'] = e;
+        var w = this.option['kid']['width'], h = this.option['kid']['height'], activeDom = this.option['gameArr'][c][d], nextDom = this.option['gameArr'][a][b];
+        this.moveAnimation(activeDom['obj']['dom'], [activeDom['loca'][0] - w, activeDom['loca'][1] - h], 150);
+        this.moveAnimation(nextDom['obj']['dom'], [nextDom['loca'][0] - w, nextDom['loca'][1] - h], 150);
     };
     //缓动效果
     Main.prototype.moveAnimation = function (obj, loca, time) {
@@ -302,7 +302,7 @@ var Main = (function (_super) {
                 this.col_count = 0;
             }
         }
-        console.log(this.gridArr);
+        // console.log(this.gridArr);
         //有一行或者有一列满足消除，即相同的动物大于等于3，返回1，表示可以交换
         if (this.row_count >= 3 || this.col_count >= 3) {
             this.row_count = 0;
