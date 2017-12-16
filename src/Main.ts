@@ -93,11 +93,11 @@ class Main extends egret.DisplayObjectContainer{
         this.touchEnabled = true;
         this.addEventListener(egret.TouchEvent.TOUCH_BEGIN,this.onTouch,this);
         this.addEventListener(egret.TouchEvent.TOUCH_MOVE,this.isTouch,this);
-        console.log( $this.option['gameArr'] );
+        // console.log( $this.option['gameArr'] );
         window['abs'] = $this.option['gameArr'];
     }
 
-    //游戏过程数据
+    //游戏滑动数据
     private gameObj:Object = {
         iconObj : null,
         coords : {
@@ -180,7 +180,11 @@ class Main extends egret.DisplayObjectContainer{
         //位置互换，判断是否满足消除条件
         that.exchangeLocation(a+c,b+d,c,d);
         console.log(a+c,b+d,c,d);
-        if( that.detection(c,d) == 0 && that.detection(a+c,b+d) == 0 ){//不满足消除条件，两个小动物位置再次互换
+        var detection1 = that.detection(a+c,b+d),
+            detection2 = that.detection(c,d);
+        if( detection1 > 0 || detection2 > 0 ){//满足消除条件，执行消除
+            this.eliminate();
+        }else{//不满足消除条件，两个小动物位置再次互换
             setTimeout(function(){
                 that.exchangeLocation(a+c,b+d,c,d);
             },200);
@@ -189,7 +193,7 @@ class Main extends egret.DisplayObjectContainer{
 
     // 位置互换
     private exchangeLocation(a,b,c,d){
-        console.log('位置互换');
+        // console.log('位置互换');
         var e = this.option['gameArr'][c][d]['obj'];
         this.option['gameArr'][c][d]['obj'] = this.option['gameArr'][a][b]['obj']
         this.option['gameArr'][a][b]['obj'] = e;
@@ -241,6 +245,7 @@ class Main extends egret.DisplayObjectContainer{
 
     //扫描消除对象
     private detection(x,y){
+        console.log('aaa');
         var thisArr = this.option['gameArr'][x][y],
             thisType = thisArr['obj']['index'],
             scan_col = 1,//纵向可扫描
@@ -322,6 +327,49 @@ class Main extends egret.DisplayObjectContainer{
             this.col_count = 0;
             return 0;
         }
+    }
+
+    //消除满足条件的动物
+    private eliminate(){
+        var that = this;
+        setTimeout(function(){
+            that.gridArr.forEach(function(ev,index){
+                ev.forEach(function(ev2,index2){
+                    if( ev2 > 0 ){
+                        var remove = that.option['gameArr'][index][index2]['obj'];
+                        remove.imgSrc = remove['dom'].src = ' '; 
+                        remove.index = 0;
+                        if( remove['dom'].parent ) {
+                            remove['dom'].parent.removeChild( remove['dom'] );
+                        }
+                        console.log(remove,that.option['gameArr'][index][index2]['obj']);
+                    }
+                });
+            });
+            // 下落执行
+            that.downDom();
+        },500);
+    }
+
+    // 下落
+    private downDom(){
+        var arr = this.option['gameArr'];
+        var blank = [];
+        // 获取当前消除了几个，每一列有几个
+        this.gridArr.forEach(function(ev,index){
+            blank[index] = 0;
+            ev.forEach(function(ev2,index2){
+                if(ev2 >= 1){ blank[index]++; }
+            });
+        });
+        console.log(blank);
+        // for( var i = arr.length-1;i>=0;i-- ){
+        //     for( var j = arr[i].length-1;j>=0;j-- ){
+        //         if( this.gridArr[i][j] == 0 ){
+                    
+        //         }
+        //     }
+        // }
     }
 
     //判断数组中是否含有某个值 a 为数组 b为需要判断的值

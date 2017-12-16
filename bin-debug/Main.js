@@ -106,7 +106,7 @@ var Main = (function (_super) {
         this.touchEnabled = true;
         this.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.onTouch, this);
         this.addEventListener(egret.TouchEvent.TOUCH_MOVE, this.isTouch, this);
-        console.log($this.option['gameArr']);
+        // console.log( $this.option['gameArr'] );
         window['abs'] = $this.option['gameArr'];
     };
     //开始触摸
@@ -173,10 +173,14 @@ var Main = (function (_super) {
         if (c + a >= row[0] || c + a < 0 || d + b >= row[1] || d + b < 0) {
             return false;
         }
-        //位置互换
+        //位置互换，判断是否满足消除条件
         that.exchangeLocation(a + c, b + d, c, d);
         console.log(a + c, b + d, c, d);
-        if (that.detection(c, d) == 0 && that.detection(a + c, b + d) == 0) {
+        var detection1 = that.detection(a + c, b + d), detection2 = that.detection(c, d);
+        if (detection1 > 0 || detection2 > 0) {
+            this.eliminate();
+        }
+        else {
             setTimeout(function () {
                 that.exchangeLocation(a + c, b + d, c, d);
             }, 200);
@@ -185,7 +189,7 @@ var Main = (function (_super) {
     };
     // 位置互换
     Main.prototype.exchangeLocation = function (a, b, c, d) {
-        console.log('位置互换');
+        // console.log('位置互换');
         var e = this.option['gameArr'][c][d]['obj'];
         this.option['gameArr'][c][d]['obj'] = this.option['gameArr'][a][b]['obj'];
         this.option['gameArr'][a][b]['obj'] = e;
@@ -213,7 +217,7 @@ var Main = (function (_super) {
             result = 1; //上滑
         }
         else {
-            console.log('错误'); //点击
+            console.log('方向错误'); //点击
         }
         return result;
     };
@@ -231,6 +235,7 @@ var Main = (function (_super) {
     };
     //扫描消除对象
     Main.prototype.detection = function (x, y) {
+        console.log('aaa');
         var thisArr = this.option['gameArr'][x][y], thisType = thisArr['obj']['index'], scan_col = 1, //纵向可扫描
         scan_row = 1, //横向可扫描
         col_x = x, col_y = y, row_x = x, row_y = y;
@@ -314,6 +319,28 @@ var Main = (function (_super) {
             this.col_count = 0;
             return 0;
         }
+    };
+    //消除满足条件的动物
+    Main.prototype.eliminate = function () {
+        var that = this;
+        setTimeout(function () {
+            that.gridArr.forEach(function (ev, index) {
+                ev.forEach(function (ev2, index2) {
+                    if (ev2 > 0) {
+                        var remove = that.option['gameArr'][index][index2]['obj'];
+                        remove.imgSrc = remove['dom'].src = '123';
+                        that.gridArr[index][index2] = 0;
+                        if (remove['dom'].parent) {
+                            remove['dom'].parent.removeChild(remove['dom']);
+                        }
+                        console.log(remove, that.option['gameArr'][index][index2]['obj']);
+                    }
+                });
+            });
+        }, 500);
+    };
+    // 下落
+    Main.prototype.downDom = function () {
     };
     //判断数组中是否含有某个值 a 为数组 b为需要判断的值
     Main.prototype.isArray = function (a, b) {
