@@ -15,8 +15,26 @@ var Main = (function (_super) {
     __extends(Main, _super);
     function Main() {
         var _this = _super.call(this) || this;
+        //游戏参数
+        _this.option = {
+            gameWidth: egret.MainContext.instance.stage.stageWidth,
+            gameHeight: egret.MainContext.instance.stage.stageHeight,
+            row: [6, 8],
+            kid: {
+                width: 60,
+                height: 60,
+                imgList: ['list_1_png', 'list_2_png', 'list_3_png', 'list_4_png', 'list_5_png', 'list_6_png'],
+            },
+            gameArr: [],
+            grade: 0,
+            oneGrade: 15,
+            gradeText: null,
+            eliminateMaxNum: 15,
+            eliminateNum: 0,
+            eliminateText: null,
+        };
         _this.gridArr = []; //扫描标记数组矩阵
-        //游戏过程数据
+        //游戏滑动数据
         _this.gameObj = {
             iconObj: null,
             coords: {
@@ -37,17 +55,6 @@ var Main = (function (_super) {
         RES.loadGroup("creature");
     };
     Main.prototype.onGroupComplete = function (event) {
-        this.option = {
-            gameWidth: egret.MainContext.instance.stage.stageWidth,
-            gameHeight: egret.MainContext.instance.stage.stageHeight,
-            row: [6, 8],
-            kid: {
-                width: 60,
-                height: 60,
-                imgList: ['list_1_png', 'list_2_png', 'list_3_png', 'list_4_png', 'list_5_png', 'list_6_png'],
-            },
-            gameArr: [],
-        };
         switch (event.groupName) {
             case 'preload':
                 this.createBitmapByName('game_bg', 0, 0, this.option['gameWidth'], this.option['gameHeight']);
@@ -65,49 +72,69 @@ var Main = (function (_super) {
     };
     //初始游戏
     Main.prototype.initGame = function () {
-        var $this = this;
-        this.option['gameArr'] = [];
+        var that = this;
+        that.option['gameArr'] = [];
+        that.option['grade'] = 0;
+        that.option['eliminateNum'] = 0;
+        that.option['gradeText'] = that.createTextField('游戏分数：0分', 15, 0xffffff, 10, 10);
+        that.addChild(that.option['gradeText']);
+        that.option['eliminateText'] = that.createTextField('剩余次数：' + that.option['eliminateMaxNum'], 15, 0xffffff, 10, 35);
+        that.addChild(that.option['eliminateText']);
+        var a = that.option['gameWidth'] * .1, //起点
+        b = that.option['gameHeight'] * .2, //起点
+        c = that.option['gameWidth'] * .9 - a, //宽度
+        d = that.option['gameHeight'] * .8 - b, //高度
+        e = c / that.option['row'][0], //行间距
+        f = d / that.option['row'][1]; //列间距
+        that.option['gameCoords'] = {
+            minX: a,
+            maxX: c + a,
+            minH: b,
+            maxH: d + b
+        };
+        that.option['kid']['width'] = e;
+        that.option['kid']['height'] = e;
+        for (var i = 0; i < that.option['row'][0]; i++) {
+            that.option['gameArr'][i] = [];
+            that.gridArr[i] = []; //生成扫描标记数组
+            for (var j = 0; j < that.option['row'][1]; j++) {
+                that.option['gameArr'][i][j] = that.createAnimal(i, j);
+                that.gridArr[i][j] = 0; //生成扫描标记数组
+            }
+        }
+        // 调用小动物参数获取方法
+        that.option['gameArr'].forEach(function (ev, index) {
+            ev.forEach(function (ev2, index2) {
+                that.getAnimalParam(index, index2);
+            });
+        });
+        that.touchEnabled = true;
+        that.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.onTouch, this);
+        that.addEventListener(egret.TouchEvent.TOUCH_MOVE, this.isTouch, this);
+        // console.log( $this.option['gameArr'] );
+        this.allScanAnimal();
+    };
+    //得到小动物绘制参数，然后条用图形绘制方法
+    Main.prototype.getAnimalParam = function (a, b) {
+        var w = this.option['kid']['width'], h = this.option['kid']['height'], arr = this.option['gameArr'][a][b], src = arr['obj']['imgSrc'], x = arr['loca'][0] - w, y = arr['loca'][1] - h;
+        this.option['gameArr'][a][b]['obj']['dom'] = this.createBitmapByName(src, x, y, w, h);
+    };
+    //生成元素
+    Main.prototype.createAnimal = function (x, y) {
         var a = this.option['gameWidth'] * .1, //起点
         b = this.option['gameHeight'] * .2, //起点
         c = this.option['gameWidth'] * .9 - a, //宽度
         d = this.option['gameHeight'] * .8 - b, //高度
         e = c / this.option['row'][0], //行间距
         f = d / this.option['row'][1]; //列间距
-        this.option['gameCoords'] = {
-            minX: a,
-            maxX: c + a,
-            minH: b,
-            maxH: d + b
-        };
-        this.option['kid']['width'] = e;
-        this.option['kid']['height'] = e;
-        for (var i = 0; i < this.option['row'][0]; i++) {
-            this.option['gameArr'][i] = [];
-            this.gridArr[i] = []; //生成扫描标记数组
-            for (var j = 0; j < this.option['row'][1]; j++) {
-                var index = Math.floor(Math.random() * 6);
-                this.option['gameArr'][i].push({
-                    loca: [a + e * (i + 1), b + f * (j + 1)],
-                    obj: {
-                        imgSrc: this.option['kid']['imgList'][index],
-                        index: index
-                    }
-                });
-                this.gridArr[i][j] = 0; //生成扫描标记数组
+        var index = Math.floor(Math.random() * 6);
+        return {
+            loca: [a + e * (x + 1), b + f * (y + 1)],
+            obj: {
+                imgSrc: this.option['kid']['imgList'][index],
+                index: index
             }
-        }
-        var w = this.option['kid']['width'], h = this.option['kid']['height'];
-        this.option['gameArr'].forEach(function (ev, index) {
-            ev.forEach(function (ev2, index2) {
-                var src = ev2['obj']['imgSrc'], x = ev2['loca'][0] - w, y = ev2['loca'][1] - h;
-                $this.option['gameArr'][index][index2]['obj']['dom'] = $this.createBitmapByName(src, x, y, w, h);
-            });
-        });
-        this.touchEnabled = true;
-        this.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.onTouch, this);
-        this.addEventListener(egret.TouchEvent.TOUCH_MOVE, this.isTouch, this);
-        // console.log( $this.option['gameArr'] );
-        window['abs'] = $this.option['gameArr'];
+        };
     };
     //开始触摸
     Main.prototype.onTouch = function (evt) {
@@ -175,7 +202,9 @@ var Main = (function (_super) {
         }
         //位置互换，判断是否满足消除条件
         that.exchangeLocation(a + c, b + d, c, d);
-        console.log(a + c, b + d, c, d);
+        that.frontMove(a + c, b + d, 150);
+        that.frontMove(c, d, 150);
+        // console.log(a+c,b+d,c,d);
         var detection1 = that.detection(a + c, b + d), detection2 = that.detection(c, d);
         if (detection1 > 0 || detection2 > 0) {
             this.eliminate();
@@ -183,6 +212,8 @@ var Main = (function (_super) {
         else {
             setTimeout(function () {
                 that.exchangeLocation(a + c, b + d, c, d);
+                that.frontMove(a + c, b + d, 150);
+                that.frontMove(c, d, 150);
             }, 200);
         }
         ;
@@ -193,9 +224,12 @@ var Main = (function (_super) {
         var e = this.option['gameArr'][c][d]['obj'];
         this.option['gameArr'][c][d]['obj'] = this.option['gameArr'][a][b]['obj'];
         this.option['gameArr'][a][b]['obj'] = e;
-        var w = this.option['kid']['width'], h = this.option['kid']['height'], activeDom = this.option['gameArr'][c][d], nextDom = this.option['gameArr'][a][b];
-        this.moveAnimation(activeDom['obj']['dom'], [activeDom['loca'][0] - w, activeDom['loca'][1] - h], 150);
-        this.moveAnimation(nextDom['obj']['dom'], [nextDom['loca'][0] - w, nextDom['loca'][1] - h], 150);
+        var that = this;
+    };
+    //
+    Main.prototype.frontMove = function (a, b, time) {
+        var w = this.option['kid']['width'], h = this.option['kid']['height'], nextDom = this.option['gameArr'][a][b], time = time || 150;
+        this.moveAnimation(nextDom['obj']['dom'], [nextDom['loca'][0] - w, nextDom['loca'][1] - h], time);
     };
     //缓动效果
     Main.prototype.moveAnimation = function (obj, loca, time) {
@@ -233,9 +267,19 @@ var Main = (function (_super) {
         this.addChild(result);
         return result;
     };
+    //绘制文本
+    Main.prototype.createTextField = function (text, size, color, x, y) {
+        var label = new egret.TextField();
+        label.x = x;
+        label.y = y;
+        label.textColor = color;
+        label.size = size;
+        label.text = text;
+        return label;
+    };
     //扫描消除对象
     Main.prototype.detection = function (x, y) {
-        console.log('aaa');
+        // console.log('aaa');
         var thisArr = this.option['gameArr'][x][y], thisType = thisArr['obj']['index'], scan_col = 1, //纵向可扫描
         scan_row = 1, //横向可扫描
         col_x = x, col_y = y, row_x = x, row_y = y;
@@ -320,27 +364,95 @@ var Main = (function (_super) {
             return 0;
         }
     };
+    //全局扫描
+    Main.prototype.allScanAnimal = function () {
+        var index = 0;
+        for (var i = 0; i < this.option['row'][0]; i++) {
+            for (var j = 0; j < this.option['row'][1]; j++) {
+                if (this.detection(i, j) > 0)
+                    index++;
+            }
+        }
+        if (index > 0) {
+            this.eliminate();
+        }
+    };
     //消除满足条件的动物
     Main.prototype.eliminate = function () {
-        var that = this;
+        var that = this, num = 0;
         setTimeout(function () {
             that.gridArr.forEach(function (ev, index) {
                 ev.forEach(function (ev2, index2) {
                     if (ev2 > 0) {
                         var remove = that.option['gameArr'][index][index2]['obj'];
-                        remove.imgSrc = remove['dom'].src = '123';
-                        that.gridArr[index][index2] = 0;
+                        remove.imgSrc = remove['dom'].src = ' ';
+                        remove.index = -1;
                         if (remove['dom'].parent) {
                             remove['dom'].parent.removeChild(remove['dom']);
                         }
-                        console.log(remove, that.option['gameArr'][index][index2]['obj']);
+                        num++;
+                        // console.log(remove,that.option['gameArr'][index][index2]['obj']);
                     }
                 });
             });
+            console.log();
+            // 下落执行
+            that.downDom();
+            //计算得分
+            that.option['grade'] += that.option['oneGrade'] * num;
+            that.option['eliminateNum']++;
+            that.option['gradeText'].text = '游戏分数: ' + that.option['grade'] + '分';
+            that.option['eliminateText'].text = '游戏次数： ' + (that.option['eliminateMaxNum'] - that.option['eliminateNum']);
         }, 500);
     };
     // 下落
     Main.prototype.downDom = function () {
+        var that = this, arr = that.option['gameArr'], blank = [], creatCount = [], w = this.option['kid']['width'], h = this.option['kid']['height'];
+        // 获取当前消除了几个，每一列有几个
+        that.gridArr.forEach(function (ev, index) {
+            blank[index] = 0;
+            creatCount[index] = 0;
+            ev.forEach(function (ev2, index2) {
+                if (ev2 >= 1) {
+                    blank[index]++;
+                    creatCount[index]++;
+                    that.gridArr[index][index2] = 0;
+                }
+            });
+        });
+        for (var i = 0; i < blank.length; i++) {
+            // console.log('i'+i);
+            for (var j = arr[i].length - 1;; j--) {
+                // 判断当前列是否全部下落完成
+                if (blank[i] > 0) {
+                    console.log('j:' + j);
+                    // 判断当前格子是否被消除
+                    if (arr[i][j]['obj']['index'] == -1 && j - 1 >= 0) {
+                        that.exchangeLocation(i, j, i, j - 1);
+                    }
+                    if (blank[i] > 0 && j == 0) {
+                        j = arr[i].length;
+                        blank[i]--;
+                    }
+                }
+                else {
+                    for (var n = 0; n < creatCount[i]; n++) {
+                        that.option['gameArr'][i][n] = that.createAnimal(i, n);
+                        that.getAnimalParam(i, n);
+                    }
+                    break;
+                }
+            }
+        }
+        // 执行缓动
+        setTimeout(function () {
+            for (var i = 0; i < that.option['row'][0]; i++) {
+                for (var j = 1; j < that.option['row'][1]; j++) {
+                    that.frontMove(i, j, 150);
+                }
+            }
+            that.allScanAnimal();
+        }, 20);
     };
     //判断数组中是否含有某个值 a 为数组 b为需要判断的值
     Main.prototype.isArray = function (a, b) {
